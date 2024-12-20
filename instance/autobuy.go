@@ -42,6 +42,7 @@ func (in *Instance) findAndClickButton(message gateway.EventMessage, targetEmoji
 				if err != nil {
 					in.Log("discord", "ERR", fmt.Sprintf("Failed to click autobuy button: %s", err.Error()))
 				}
+				in.Log("others", "INF", "Done clicking button.")
 				return true
 			}
 		}
@@ -63,6 +64,7 @@ func (in *Instance) shopBuy(shopMsg gateway.EventMessage) {
 			if err != nil {
 				in.Log("discord", "ERR", fmt.Sprintf("Failed to click next autobuy page button: %s", err.Error()))
 			}
+			in.Log("others", "INF", "clicked next button")
 		}
 	}
 }
@@ -73,8 +75,9 @@ func (in *Instance) AutoBuyMessageUpdate(message gateway.EventMessage) {
 	if embed.Title == "Dank Memer Shop" && globalAutoBuyState.itemEmojiName != "" {
 		if strings.Contains(embed.Footer.Text, "Page 1") {
 			in.Log("others", "ERR", "Failed to find autobuy button")
-			in.setAutoBuyState(0, 0, "", 0)
-			in.UnpauseCommands()
+			//in.setAutoBuyState(0, 0, "", 0)
+			//in.UnpauseCommands()
+			/* check this part, instance/instance.go 200-ish line*/
 			return
 		}
 
@@ -86,6 +89,7 @@ func (in *Instance) AutoBuyMessageCreate(message gateway.EventMessage) {
 	embed := message.Embeds[0]
 	if strings.Contains(embed.Description, "You don't have a shovel") && in.Cfg.AutoBuy.Shovel.State {
 		in.setAutoBuyState(0, 1, "IronShovel", 50000)
+		in.Log("others", "INF", "Attempting to buy")
 	} else if strings.Contains(embed.Description, "You don't have a hunting rifle") && in.Cfg.AutoBuy.HuntingRifle.State {
 		in.setAutoBuyState(0, 1, "LowRifle", 50000)
 	} else if embed.Title == "Your lifesaver protected you!" && in.Cfg.AutoBuy.LifeSavers.State {
@@ -148,12 +152,18 @@ func (in *Instance) AutoBuyMessageCreate(message gateway.EventMessage) {
 
 func (in *Instance) AutoBuyModalCreate(modal gateway.EventModalCreate) {
 	if modal.Title == "Dank Memer Shop" {
-		modal.Components[0].(*types.ActionsRow).Components[0].(*types.TextInput).Value = strconv.Itoa(globalAutoBuyState.count)
-		err := in.SubmitModal(modal)
-		if err != nil {
-			in.Log("discord", "ERR", fmt.Sprintf("Failed to submit autobuy modal: %s", err.Error()))
+		in.Log("others", "INF", "Modal detected")
+		in.Log("others", "INF", fmt.Sprintf("Amount to buy: %s" ,strconv.Itoa(globalAutoBuyState.count)))
+		if globalAutoBuyState.count != 0 {
+			modal.Components[0].(*types.ActionsRow).Components[0].(*types.TextInput).Value = strconv.Itoa(globalAutoBuyState.count)
+			err := in.SubmitModal(modal)
+			if err != nil {
+				in.Log("discord", "ERR", fmt.Sprintf("Failed to submit autobuy modal: %s", err.Error()))
+			}
+			in.Log("others", "INF", fmt.Sprintf("Auto bought %s", globalAutoBuyState.itemEmojiName))
+		} else {
+			in.Log("others", "INF", "spam detected....")
 		}
-		in.Log("others", "INF", fmt.Sprintf("Auto bought %s", globalAutoBuyState.itemEmojiName))
 		in.setAutoBuyState(0, 0, "", 0)
 		in.UnpauseCommands()
 	}
