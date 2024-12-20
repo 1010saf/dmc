@@ -1,3 +1,5 @@
+# I DON'T KNOW WHAT IAM DOING!
+## Idk golang, but i'll attempt to fix some bugs while bridge is gone by learning some basics of golang.. This fixes are only meant to be temporary and not permanent as the code is going to be filled with my stupidity lol. I hope Bridge returns soon haha
 <br>
 
 <div align="center">
